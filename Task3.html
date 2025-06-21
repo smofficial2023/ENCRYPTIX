@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Task 3 [CALCULATOR] </title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
+            background: #00e68a;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 200px;
+        }
+
+        .calculator {
+            background: rgba(153, 142, 366, 0.2);
+            border-radius: 30px;
+            padding: 40px;
+            margin-bottom: 50px;
+            margin-top: 50px;
+            box-shadow: 0 19px 52px rgba(2, 4, 6, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            max-width: 900px;
+        }
+
+        .displayCalculator {
+            background: rgb(240, 204, 187);
+            color: rgba(0, 0, 0, 0.932);
+            font-size: 2.4rem;
+            text-align: right;
+            padding: 30px;
+            margin-bottom: 30px;
+            border-radius: 20px;
+            min-height: 90px;
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            
+        }
+
+        .buttonsCalculator {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 15px;
+        }
+
+        button {
+            padding: 20px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            background: rgba(240, 252, 253, 0.9);
+            color: #000000;
+            box-shadow: 0 8px 12px rgba(0, 0, 0, 0.2);
+        }
+
+        button:active {
+            transform: translateY(0);
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .opertr {
+            background: linear-gradient(135deg, #b679e9, #ee5a24);
+            color: white;
+        }
+
+        .eqls {
+            background: linear-gradient(135deg, #00d2ff, #3a7bd5);
+            color: white;
+        }
+
+        .eqls:hover {
+            background: linear-gradient(135deg, #3a7bd5, #00d2ff);
+        }
+
+        .clr {
+            background: linear-gradient(135deg, #dd9426, #00baf3);
+            color: white;
+        }
+
+        
+
+        .zero {
+            grid-column: span 2.0;
+        }
+
+        @media (max-width: 400px) {
+            .calculator {
+                padding: 21px;
+            }
+            
+            .display {
+                font-size: 2.2rem;
+                padding: 17px;
+                min-height: 70px;
+            }
+            
+            button {
+                padding: 17px;
+                font-size: 1.3rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="calculator">
+        <div class="displayCalculator" id="displayresult">0</div>
+        <div class="buttonsCalculator">
+            <button class="clr" onclick="clDisp()">C</button>
+            <button class="clr" onclick="delLast()">⌫</button>
+            <button class="opertr" onclick="inOper('+')">/</button>
+            <button class="opertr" onclick="inOper('-')">*</button>
+            
+            <button onclick="inNum('7')">7</button>
+            <button onclick="inNum('8')">8</button>
+            <button onclick="inNum('9')">9</button>
+            <button class="opertr" onclick="inOper('*')">-</button>
+            
+            <button onclick="inNum('4')">4</button>
+            <button onclick="inNum('5')">5</button>
+            <button onclick="inNum('6')">6</button>
+            <button class="opertr" onclick="inOper('/')">+</button>
+            
+            <button onclick="inNum('1')">1</button>
+            <button onclick="inNum('2')">2</button>
+            <button onclick="inNum('3')">3</button>
+            <button class="eqls" onclick="calc()" rowspan="2">=</button>
+            
+            <button class="zero" onclick="inNum('0')">0</button>
+            <button onclick="inDec()">.</button>
+        </div>
+    </div>
+
+    <script>
+        let displ = document.getElementById('displayresult');
+        let currInp = '0';
+        let optr = null;
+        let waitForOperand = false;
+        let prevInp = null;
+
+        function updtDis() {
+            displ.textContent = currInp;
+        }
+
+        function inNum(num) {
+            if (waitForOperand) {
+                currInp = num;
+                waitForOperand = false;
+            } else {
+                currInp = currInp === '0' ? num : currInp + num;
+            }
+            updtDis();
+        }
+
+        function inDec() {
+            if (waitForOperand) {
+                currInp = '0.';
+                waitForOperand = false;
+            } else if (currInp.indexOf('.') === -1) {
+                currInp += '.';
+            }
+            updtDis();
+        }
+
+        function inOper(nextOperator) {
+            const inpVal = parseFloat(currInp);
+
+            if (prevInp === null) {
+                prevInp = inpVal;
+            } else if (optr) {
+                const currVal = prevInp || 0;
+                const newVal = performCal(currVal, inpVal, optr);
+
+                if (newVal === 'Error') {
+                    currInp = 'Error';
+                    prevInp = null;
+                    optr = null;
+                    waitForOperand = true;
+                    updtDis();
+                    return;
+                }
+
+                currInp = String(newVal);
+                prevInp = newVal;
+                updtDis();
+            }
+
+            waitForOperand = true;
+            optr = nextOperator;
+        }
+
+        function calc() {
+            const inputVal = parseFloat(currInp);
+
+            if (prevInp !== null && optr) {
+                const nValue = performCal(prevInp, inputVal, optr);
+                
+                if (nValue === 'Error') {
+                    currInp = 'Error';
+                    prevInp = null;
+                    optr = null;
+                    waitForOperand = true;
+                } else {
+                    currInp = String(nValue);
+                    prevInp = null;
+                    optr = null;
+                    waitForOperand = true;
+                }
+                
+                updtDis();
+            }
+        }
+
+        function performCal(firstOperand, secondOperand, optr) {
+            let result;
+            
+            switch (optr) {
+                case '+':
+                    result = firstOperand + secondOperand;
+                    break;
+                case '-':
+                    result = firstOperand - secondOperand;
+                    break;
+                case '*':
+                    result = firstOperand * secondOperand;
+                    break;
+                case '/':
+                    if (secondOperand === 0) {
+                        return 'Error';
+                    }
+                    result = firstOperand / secondOperand;
+                    break;
+                default:
+                    return secondOperand;
+            }
+
+            
+            return Math.round(result * 100000000) / 100000000;
+        }
+
+        function clDisp() {
+            currInp = '0';
+            optr = null;
+            prevInp = null;
+            waitForOperand = false;
+            updtDis();
+        }
+
+        function delLast() {
+            if (currInp.length > 1) {
+                currInp = currInp.slice(0, -1);
+            } else {
+                currInp = '0';
+            }
+            updtDis();
+        }
+
+        
+        document.addEventListener('keydown', function(event) {
+            const key = event.key;
+            
+            if (key >= '0' && key <= '9') {
+                inNum(key);
+            } else if (key === '.') {
+                inDec();
+            } else if (key === '+' || key === '-') {
+                inOper(key);
+            } else if (key === '*') {
+                inOper('*');
+            } else if (key === '/') {
+                event.preventDefault();
+                inOper('/');
+            } else if (key === 'Enter' || key === '=') {
+                event.preventDefault();
+                calc();
+            } else if (key === 'Escape' || key.toLowerCase() === 'c') {
+                clDisp();
+            } else if (key === 'Backspace') {
+                event.preventDefault();
+                delLast();
+            }
+        });
+
+        
+        updtDis();
+    </script>
+</body>
+</html>
